@@ -8,7 +8,7 @@
 # automatisch. Kein handgeschriebenes SQL noetig.
 #
 # Vorgehen:
-#   1.  Container starten (Oracle, Postgres, ora2pg-basic)
+#   1.  Container starten (Oracle, Postgres, ora2pg)
 #   2.  Warten bis Oracle healthy
 #   3.  DDL aus Oracle exportieren (TABLE, TRIGGER)
 #   4.  Ziel-Schema in Postgres anlegen
@@ -41,12 +41,12 @@ until [ "$(docker inspect --format='{{.State.Health.Status}}' oracle-xe 2>/dev/n
 done
 echo
 
-msg "3/8  ora2pg-basic starten und DDL exportieren"
-$COMPOSE up -d ora2pg-basic
+msg "3/8  ora2pg starten und DDL exportieren"
+$COMPOSE up -d ora2pg
 sleep 2
 
-docker exec ora2pg-basic bash -lc 'cd /config && ora2pg -t TABLE   -c ora2pg.conf -o tables.sql'
-docker exec ora2pg-basic bash -lc 'cd /config && ora2pg -t TRIGGER -c ora2pg.conf -o triggers.sql'
+docker exec ora2pg bash -lc 'cd /config-basic && ora2pg -t TABLE   -c ora2pg.conf -o tables.sql'
+docker exec ora2pg bash -lc 'cd /config-basic && ora2pg -t TRIGGER -c ora2pg.conf -o triggers.sql'
 
 msg "4/8  Postgres-Schema neu aufsetzen"
 docker exec -i postgres psql -U demo -d demo -v ON_ERROR_STOP=1 <<'SQL'
@@ -76,7 +76,7 @@ docker exec -i postgres psql -U demo -d demo -v ON_ERROR_STOP=1 <<'SQL'
 SET search_path = app_basic_demo, public;
 ALTER TABLE bestellungen DISABLE TRIGGER ALL;
 SQL
-docker exec ora2pg-basic bash -lc 'cd /config && ora2pg -t COPY -c ora2pg.conf'
+docker exec ora2pg bash -lc 'cd /config-basic && ora2pg -t COPY -c ora2pg.conf'
 docker exec -i postgres psql -U demo -d demo -v ON_ERROR_STOP=1 <<'SQL'
 SET search_path = app_basic_demo, public;
 ALTER TABLE bestellungen ENABLE TRIGGER ALL;

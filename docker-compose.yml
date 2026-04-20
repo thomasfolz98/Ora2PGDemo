@@ -33,28 +33,15 @@ services:
     volumes:
       - ./docker/postgres/data:/var/lib/postgresql/data
 
-  # Ora2Pg fuer die Basic-Demo (app_basic_demo)
-  ora2pg-basic:
+  # Ein Ora2Pg-Container fuer beide Demos
+  ora2pg:
     build:
       context: ./docker/ora2pg
     platform: linux/amd64
-    container_name: ora2pg-basic
+    container_name: ora2pg
     volumes:
-      - ./basic/migration:/config
-    depends_on:
-      oracle:
-        condition: service_healthy
-      postgres:
-        condition: service_started
-
-  # Ora2Pg fuer die Advanced-Demo (app_demo + pkg_faktura)
-  ora2pg-advanced:
-    build:
-      context: ./docker/ora2pg
-    platform: linux/amd64
-    container_name: ora2pg-advanced
-    volumes:
-      - ./advanced/migration:/config
+      - ./basic/migration:/config-basic
+      - ./advanced/migration:/config-advanced
     depends_on:
       oracle:
         condition: service_healthy

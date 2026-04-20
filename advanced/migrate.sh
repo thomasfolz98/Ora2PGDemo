@@ -9,7 +9,7 @@
 # Vorgehen:
 #   1.  Container starten
 #   2.  Auf Oracle-Healthcheck warten
-#   3.  ora2pg-advanced starten
+#   3.  ora2pg starten
 #   4.  DDL exportieren (TABLE, SEQUENCE, VIEW, TRIGGER, PACKAGE, FUNCTION, PROCEDURE)
 #   5.  Ziel-Schemata in Postgres droppen + neu anlegen (app_demo + pkg_faktura)
 #   6.  DDL einspielen
@@ -42,18 +42,18 @@ until [ "$(docker inspect --format='{{.State.Health.Status}}' oracle-xe 2>/dev/n
 done
 echo
 
-msg "3/10  ora2pg-advanced starten"
-$COMPOSE up -d ora2pg-advanced
+msg "3/10  ora2pg starten"
+$COMPOSE up -d ora2pg
 sleep 2
 
 msg "4/10  DDL aus Oracle exportieren"
-docker exec ora2pg-advanced bash -lc 'cd /config && ora2pg -t TABLE     -c ora2pg.conf -o tables.sql'
-docker exec ora2pg-advanced bash -lc 'cd /config && ora2pg -t SEQUENCE  -c ora2pg.conf -o sequences.sql'
-docker exec ora2pg-advanced bash -lc 'cd /config && ora2pg -t VIEW      -c ora2pg.conf -o views.sql'
-docker exec ora2pg-advanced bash -lc 'cd /config && ora2pg -t TRIGGER   -c ora2pg.conf -o triggers.sql'
-docker exec ora2pg-advanced bash -lc 'cd /config && ora2pg -t PACKAGE   -c ora2pg.conf -o package.sql'
-docker exec ora2pg-advanced bash -lc 'cd /config && ora2pg -t FUNCTION  -c ora2pg.conf -o functions.sql'
-docker exec ora2pg-advanced bash -lc 'cd /config && ora2pg -t PROCEDURE -c ora2pg.conf -o procedures.sql'
+docker exec ora2pg bash -lc 'cd /config-advanced && ora2pg -t TABLE     -c ora2pg.conf -o tables.sql'
+docker exec ora2pg bash -lc 'cd /config-advanced && ora2pg -t SEQUENCE  -c ora2pg.conf -o sequences.sql'
+docker exec ora2pg bash -lc 'cd /config-advanced && ora2pg -t VIEW      -c ora2pg.conf -o views.sql'
+docker exec ora2pg bash -lc 'cd /config-advanced && ora2pg -t TRIGGER   -c ora2pg.conf -o triggers.sql'
+docker exec ora2pg bash -lc 'cd /config-advanced && ora2pg -t PACKAGE   -c ora2pg.conf -o package.sql'
+docker exec ora2pg bash -lc 'cd /config-advanced && ora2pg -t FUNCTION  -c ora2pg.conf -o functions.sql'
+docker exec ora2pg bash -lc 'cd /config-advanced && ora2pg -t PROCEDURE -c ora2pg.conf -o procedures.sql'
 
 msg "5/10  Postgres-Schemata neu aufsetzen"
 docker exec -i postgres psql -U demo -d demo -v ON_ERROR_STOP=1 <<'SQL'
@@ -84,7 +84,7 @@ import_sql "functions.sql"  migration/output/functions.sql
 import_sql "procedures.sql" migration/output/procedures.sql
 
 msg "7/10  Daten via 'ora2pg -t COPY' laden"
-docker exec ora2pg-advanced bash -lc 'cd /config && ora2pg -t COPY -c ora2pg.conf'
+docker exec ora2pg bash -lc 'cd /config-advanced && ora2pg -t COPY -c ora2pg.conf'
 
 msg "8/10  Identity-Sequenzen nachziehen"
 docker exec -i postgres psql -U demo -d demo -v ON_ERROR_STOP=1 <<'SQL'
