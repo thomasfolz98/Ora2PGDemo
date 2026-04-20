@@ -10,6 +10,9 @@ advanced/migration/output/
 docker/oracle/init.sql.old
 agents.archive/
 
+# Content-Dateien (LinkedIn, YouTube) – nicht öffentlich
+content/
+
 # macOS
 .DS_Store
 
