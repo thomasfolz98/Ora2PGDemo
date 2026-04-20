@@ -16,6 +16,7 @@
 #   6.  Daten via COPY importieren
 #   7.  Identity-Sequenzen nachziehen
 #   8.  Verifikation
+#   9.  API starten (api-basic, Port 8081)
 #
 # Idempotent: Jeder Lauf wipet app_basic_demo in Postgres neu auf.
 # -------------------------------------------------------------
@@ -104,5 +105,8 @@ SELECT b.id, p.name, b.menge, b.bestelldatum
  ORDER BY b.bestelldatum DESC
  LIMIT 5;
 SQL
+
+msg "9/9  API starten"
+$COMPOSE up -d --build api-basic
 
 msg "Migration abgeschlossen. API erreichbar unter http://localhost:8081/docs"

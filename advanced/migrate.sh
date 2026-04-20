@@ -17,6 +17,7 @@
 #   8.  Identity-Sequenzen nachziehen
 #   9.  Patches einspielen (z.B. numeric-Rueckgabetypen fuer Package-Funktionen)
 #   10. Verifikation inkl. Smoke-Test pkg_faktura.kunde_umsatz(1)
+#   11. API starten (api-advanced, Port 8080)
 #
 # Idempotent: Jeder Lauf wipet app_demo + pkg_faktura in Postgres neu auf.
 # -------------------------------------------------------------
@@ -125,5 +126,8 @@ else
   err "    WARNUNG: erwartet 880.60, bekommen '$SMOKE'"
   err "    Pruefe migration/output/package.sql und Patches in migration/output/patches/."
 fi
+
+msg "11/11  API starten"
+$COMPOSE up -d --build api-advanced
 
 msg "Migration abgeschlossen. API erreichbar unter http://localhost:8080/docs"
