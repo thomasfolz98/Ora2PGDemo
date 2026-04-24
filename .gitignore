@@ -2,9 +2,9 @@
 docker/oracle/data/
 docker/postgres/data/
 
-# Ora2Pg-Ausgabe (wird bei jedem migrate.sh neu erzeugt)
-basic/migration/output/
-advanced/migration/output/
+# Ora2Pg HTML-Report (wird bei jedem migrate.sh neu erzeugt, gross)
+basic/migration/output/report.html
+advanced/migration/output/report.html
 
 # Alte Artefakte
 docker/oracle/init.sql.old
