@@ -10,14 +10,15 @@
 #   1.  Container starten
 #   2.  Auf Oracle-Healthcheck warten
 #   3.  ora2pg starten
-#   4.  DDL exportieren (TABLE, SEQUENCE, VIEW, TRIGGER, PACKAGE, FUNCTION, PROCEDURE)
-#   5.  Ziel-Schemata in Postgres droppen + neu anlegen (app_demo + pkg_faktura)
-#   6.  DDL einspielen
-#   7.  Daten via COPY laden
-#   8.  Identity-Sequenzen nachziehen
-#   9.  Patches einspielen (z.B. numeric-Rueckgabetypen fuer Package-Funktionen)
-#   10. Verifikation inkl. Smoke-Test pkg_faktura.kunde_umsatz(1)
-#   11. API starten (api-advanced, Port 8080)
+#   4.  Migrations-Report erzeugen (SHOW_REPORT -> migration/output/report.html)
+#   5.  DDL exportieren (TABLE, SEQUENCE, VIEW, TRIGGER, PACKAGE, FUNCTION, PROCEDURE)
+#   6.  Ziel-Schemata in Postgres droppen + neu anlegen (app_demo + pkg_faktura)
+#   7.  DDL einspielen
+#   8.  Daten via COPY laden
+#   9.  Identity-Sequenzen nachziehen
+#   10. Patches einspielen (z.B. numeric-Rueckgabetypen fuer Package-Funktionen)
+#   11. Verifikation inkl. Smoke-Test pkg_faktura.kunde_umsatz(1)
+#   12. API starten (api-advanced, Port 8080)
 #
 # Idempotent: Jeder Lauf wipet app_demo + pkg_faktura in Postgres neu auf.
 # -------------------------------------------------------------
@@ -33,21 +34,26 @@ msg()  { printf "\n\033[1;36m==> %s\033[0m\n" "$*"; }
 warn() { printf "\033[1;33m%s\033[0m\n" "$*"; }
 err()  { printf "\033[1;31m%s\033[0m\n" "$*"; }
 
-msg "1/10  Container starten"
+msg "1/12  Container starten"
 $COMPOSE up -d oracle postgres
 
-msg "2/10  Auf Oracle-Healthcheck warten"
+msg "2/12  Auf Oracle-Healthcheck warten"
 until [ "$(docker inspect --format='{{.State.Health.Status}}' oracle-xe 2>/dev/null || echo none)" = "healthy" ]; do
   printf "."
   sleep 5
 done
 echo
 
-msg "3/10  ora2pg starten"
+msg "3/12  ora2pg starten"
 $COMPOSE up -d ora2pg
 sleep 2
 
-msg "4/10  DDL aus Oracle exportieren"
+msg "4/12  Migrations-Report erzeugen"
+docker exec ora2pg bash -lc \
+  'cd /config-advanced && ora2pg -t SHOW_REPORT -c ora2pg.conf --dump_as_html > output/report.html'
+printf "    Report: advanced/migration/output/report.html\n"
+
+msg "5/12  DDL aus Oracle exportieren"
 docker exec ora2pg bash -lc 'cd /config-advanced && ora2pg -t TABLE     -c ora2pg.conf -o tables.sql'
 docker exec ora2pg bash -lc 'cd /config-advanced && ora2pg -t SEQUENCE  -c ora2pg.conf -o sequences.sql'
 docker exec ora2pg bash -lc 'cd /config-advanced && ora2pg -t VIEW      -c ora2pg.conf -o views.sql'
@@ -56,7 +62,7 @@ docker exec ora2pg bash -lc 'cd /config-advanced && ora2pg -t PACKAGE   -c ora2p
 docker exec ora2pg bash -lc 'cd /config-advanced && ora2pg -t FUNCTION  -c ora2pg.conf -o functions.sql'
 docker exec ora2pg bash -lc 'cd /config-advanced && ora2pg -t PROCEDURE -c ora2pg.conf -o procedures.sql'
 
-msg "5/10  Postgres-Schemata neu aufsetzen"
+msg "6/12  Postgres-Schemata neu aufsetzen"
 docker exec -i postgres psql -U demo -d demo -v ON_ERROR_STOP=1 <<'SQL'
 DROP SCHEMA IF EXISTS app_demo    CASCADE;
 DROP SCHEMA IF EXISTS pkg_faktura CASCADE;
@@ -64,7 +70,7 @@ CREATE SCHEMA app_demo AUTHORIZATION demo;
 ALTER ROLE demo SET search_path = app_demo, pkg_faktura, public;
 SQL
 
-msg "6/10  DDL in Postgres einspielen (tables -> sequences -> views -> triggers -> package)"
+msg "7/12  DDL in Postgres einspielen (tables -> sequences -> views -> triggers -> package)"
 import_sql() {
   local label="$1" file="$2"
   if [ -s "$file" ]; then
@@ -84,10 +90,10 @@ import_sql "package.sql"    migration/output/package.sql
 import_sql "functions.sql"  migration/output/functions.sql
 import_sql "procedures.sql" migration/output/procedures.sql
 
-msg "7/10  Daten via 'ora2pg -t COPY' laden"
+msg "8/12  Daten via 'ora2pg -t COPY' laden"
 docker exec ora2pg bash -lc 'cd /config-advanced && ora2pg -t COPY -c ora2pg.conf'
 
-msg "8/10  Identity-Sequenzen nachziehen"
+msg "9/12  Identity-Sequenzen nachziehen"
 docker exec -i postgres psql -U demo -d demo -v ON_ERROR_STOP=1 <<'SQL'
 SET search_path = app_demo, pkg_faktura, public;
 SELECT setval(pg_get_serial_sequence('app_demo.kunden','id'),              (SELECT MAX(id) FROM kunden));
@@ -95,7 +101,7 @@ SELECT setval(pg_get_serial_sequence('app_demo.rechnungen','id'),          (SELE
 SELECT setval(pg_get_serial_sequence('app_demo.rechnungspositionen','id'), (SELECT MAX(id) FROM rechnungspositionen));
 SQL
 
-msg "9/10  Patches aus migration/output/patches/ einspielen"
+msg "10/12  Patches aus migration/output/patches/ einspielen"
 if compgen -G "migration/output/patches/*.sql" > /dev/null; then
   for p in migration/output/patches/*.sql; do
     printf "    %s\n" "$(basename "$p")"
@@ -107,7 +113,7 @@ else
   warn "    keine Patches vorhanden"
 fi
 
-msg "10/10  Verifikation"
+msg "11/12  Verifikation"
 docker exec -i postgres psql -U demo -d demo <<'SQL'
 SET search_path = app_demo, pkg_faktura, public;
 SELECT 'kunden' AS tabelle, COUNT(*) AS rows FROM kunden
@@ -127,7 +133,7 @@ else
   err "    Pruefe migration/output/package.sql und Patches in migration/output/patches/."
 fi
 
-msg "11/11  API starten"
+msg "12/12  API starten"
 $COMPOSE up -d --build api-advanced
 
 msg "Migration abgeschlossen. API erreichbar unter http://localhost:8080/docs"
