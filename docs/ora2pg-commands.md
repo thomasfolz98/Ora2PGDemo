@@ -39,6 +39,6 @@ docker exec ora2pg bash -lc 'cd /config-advanced && ora2pg -t <TYP> -c ora2pg.co
 ## Hinweise
 
 - `-c ora2pg.conf` — Konfigurationsdatei mit Verbindungsdaten, Schema, Typ-Mapping
-- `-o <datei.sql>` — Ausgabedatei (relativ zu `OUTPUT_DIR` in ora2pg.conf)
+- `-o <datei.sql>` — **Nur Export in Datei.** Der Import nach PostgreSQL erfolgt danach separat (z.B. via `psql -f tables.sql`). Ohne `-o` und mit gesetztem `PG_DSN` in ora2pg.conf importiert ora2pg direkt in PostgreSQL — so arbeitet `COPY` in diesem Projekt.
 - `--dump_as_html` — Nur für `SHOW_REPORT`: erzeugt HTML statt Text
 - Typ-Mapping (z.B. `NUMBER` → `bigint` vs. `numeric`) ist konfigurierbar über `DATA_TYPE` in ora2pg.conf — fehlerhaftes Mapping ist der häufigste Grund für manuelle Patches
