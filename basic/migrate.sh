@@ -45,6 +45,7 @@ echo
 msg "3/8  ora2pg starten und DDL exportieren"
 $COMPOSE up -d ora2pg
 sleep 2
+mkdir -p migration/output
 
 docker exec ora2pg bash -lc 'cd /config-basic && ora2pg -t TABLE   -c ora2pg.conf -o tables.sql'
 docker exec ora2pg bash -lc 'cd /config-basic && ora2pg -t TRIGGER -c ora2pg.conf -o triggers.sql'

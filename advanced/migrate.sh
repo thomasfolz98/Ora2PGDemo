@@ -47,6 +47,7 @@ echo
 msg "3/12  ora2pg starten"
 $COMPOSE up -d ora2pg
 sleep 2
+mkdir -p migration/output/patches
 
 msg "4/12  Migrations-Report erzeugen"
 docker exec ora2pg bash -lc \
