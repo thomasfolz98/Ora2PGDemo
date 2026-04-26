@@ -19,6 +19,8 @@ Build a demo system that migrates Oracle DB to PostgreSQL
 - migration
 - dev
 
-### Current Task
+### Current State
 
-Setup Docker environment and initial schema
+Demo vollständig lauffähig und auf GitHub publiziert (https://github.com/thomasfolz98/Ora2PGDemo).
+Zwei Demo-Stufen: basic (app_basic_demo, kein Patch) + advanced (app_demo + pkg_faktura, 1 Patch).
+YouTube-Video steht noch aus — danach Link in README nachtragen.
