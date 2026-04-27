@@ -51,7 +51,7 @@ mkdir -p migration/output/patches
 
 msg "4/12  Migrations-Report erzeugen"
 docker exec ora2pg bash -lc \
-  'cd /config-advanced && ora2pg -t SHOW_REPORT -c ora2pg.conf --dump_as_html > output/report.html'
+  'cd /config-advanced && ora2pg -t SHOW_REPORT -c ora2pg.conf --estimate_cost --dump_as_html > output/report.html'
 printf "    Report: advanced/migration/output/report.html\n"
 
 msg "5/12  DDL aus Oracle exportieren"
