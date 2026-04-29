@@ -9,7 +9,7 @@ Zwei Demo-Stufen zeigen den Einstieg und die volle Komplexität einer realen Mig
 | Demo     | Schema           | Komplexität | Patches | API-Port |
 | -------- | ---------------- | ----------- | ------- | -------- |
 | Basic    | `app_basic_demo` | 2 Tabellen, 1 Index, 1 Trigger | keine | 8081 |
-| Advanced | `app_demo`       | 3 Tabellen, View, 2 Trigger, PL/SQL-Package | 1 | 8080 |
+| Advanced | `app_demo`       | 3 Tabellen, View, 2 Trigger, PL/SQL-Package | 1 | 8082 |
 
 ## Architektur
 
@@ -20,7 +20,7 @@ Zwei Demo-Stufen zeigen den Einstieg und die volle Komplexität einer realen Mig
 | Ora2Pg Basic       | Custom (Ubuntu 22.04, Ora2Pg v24) | linux/amd64 | Oracle Instant Client 21.12             |
 | Ora2Pg Advanced    | Custom (Ubuntu 22.04, Ora2Pg v24) | linux/amd64 | Oracle Instant Client 21.12             |
 | API Basic          | `python:3.12-slim` + FastAPI      | arm64/amd64 | Port 8081, schema app_basic_demo        |
-| API Advanced       | `python:3.12-slim` + FastAPI      | arm64/amd64 | Port 8080, schema app_demo + pkg_faktura |
+| API Advanced       | `python:3.12-slim` + FastAPI      | arm64/amd64 | Port 8082, schema app_demo + pkg_faktura |
 
 Beide Schemas werden beim ersten Oracle-Start automatisch aus den Scripts
 unter `docker/oracle/init/` angelegt (nummeriert `10_`–`12_` für Basic,
@@ -78,7 +78,7 @@ Rollback: `./basic/rollback.sh`
 ./advanced/migrate.sh
 ```
 
-Swagger-UI: http://localhost:8080/docs
+Swagger-UI: http://localhost:8082/docs
 
 Was passiert:
 - Ora2Pg-Cost Level B-5, ~1 PT Aufwand
@@ -122,7 +122,7 @@ OracleDemo/
     ├── rollback.sh
     ├── migration/ora2pg.conf
     ├── migration/output/patches/
-    ├── api/                    FastAPI, Port 8080
+    ├── api/                    FastAPI, Port 8082
     └── docs/                   Cheatsheet, Migration-Diff, PL/SQL Best Practices
 ```
 
@@ -132,7 +132,7 @@ OracleDemo/
 - Nach `COPY` immer die Identity-Sequenzen mit `setval()` nachziehen.
 - Ora2Pg: `CONCAT`-Warnung in Views ist bei `||`-Verkettung ein False Positive.
 - Oracle XE 21c gibt es nur als x86_64 → Rosetta auf Apple Silicon ist Pflicht.
-- Port 8000 ggf. schon belegt (z.B. durch Portainer) → API auf 8080/8081 gemappt.
+- Port 8000 ggf. schon belegt (z.B. durch Portainer) → API auf 8082/8081 gemappt.
 
 ## Oracle-Verbindung (Direktzugriff)
 
