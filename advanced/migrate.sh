@@ -137,4 +137,4 @@ fi
 msg "12/12  API starten"
 $COMPOSE up -d --build api-advanced
 
-msg "Migration abgeschlossen. API erreichbar unter http://localhost:8080/docs"
+msg "Migration abgeschlossen. API erreichbar unter http://localhost:8082/docs"

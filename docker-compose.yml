@@ -62,7 +62,7 @@ services:
         condition: service_started
     restart: unless-stopped
 
-  # API fuer Advanced-Demo (Port 8080)
+  # API fuer Advanced-Demo (Port 8082)
   api-advanced:
     build:
       context: ./advanced/api
@@ -70,7 +70,7 @@ services:
     environment:
       DB_DSN: postgresql://demo:demo@postgres:5432/demo
     ports:
-      - "8080:8000"
+      - "8082:8000"
     depends_on:
       postgres:
         condition: service_started
